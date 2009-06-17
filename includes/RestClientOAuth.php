@@ -6,12 +6,14 @@ class RestClientOAuth implements RestClientAuthentication {
   private $token;
   private $sign;
   private $signImpl;
+  private $hash_body;
 
-  public function __construct($consumer, $token=NULL, $sign_impl=NULL) {
+  public function __construct($consumer, $token=NULL, $sign_impl=NULL, $hash_body=TRUE) {
     $this->consumer = $consumer;
     $this->token = $token;
     $this->signImpl = $sign_impl;
     $this->sign = is_object($sign_impl);
+    $this->hash_body = $hash_body;
   }
 
   /**
@@ -34,12 +36,14 @@ class RestClientOAuth implements RestClientAuthentication {
    * @return void
    */
   public function authenticate($request) {
-    // Add a body hash if applicable    
-    $content_type = $request->getHeader('Content-type', TRUE);
-    if ($content_type !== 'application/x-www-form-urlencoded') {
-      $data = $request->getData();
-      $data || $data = '';
-      $request->setParameter('oauth_body_hash', base64_encode(sha1($data, TRUE)));
+    if ($this->hash_body) {
+      // Add a body hash if applicable
+      $content_type = $request->getHeader('Content-type', TRUE);
+      if ($content_type !== 'application/x-www-form-urlencoded') {
+        $data = $request->getData();
+        $data || $data = '';
+        $request->setParameter('oauth_body_hash', base64_encode(sha1($data, TRUE)));
+      }
     }
 
     // Create a OAuth request object, and sign it if we got a sign
