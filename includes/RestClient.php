@@ -2,7 +2,7 @@
 
 class RestClient {
   private $authentication = NULL;
-  private $url_alter = NULL;
+  private $request_alter = NULL;
   private $formatter = NULL;
   public $rawResponse;
   public $lastResponse;
@@ -11,11 +11,11 @@ class RestClient {
    * Creates a Rest client
    *
    * @param string $authentication
-   * @param string $url_alter
+   * @param string $request_alter
    * @param string $unserialize
    * @author Hugo Wetterberg
    */
-  public function __construct($authentication=NULL, $formatter=NULL, $url_alter=NULL) {
+  public function __construct($authentication=NULL, $formatter=NULL, $request_alter=NULL) {
     $this->authentication = $authentication;
     $this->formatter = $formatter;
 
@@ -26,11 +26,11 @@ class RestClient {
       throw new Exception(t('The formatter parameter must either be a object implementing RestClientFormatter, or evaluate to FALSE.'));
     }
 
-    if (!$this->url_alter || is_callable(array($url_alter, 'alterUrl'))) {
-      $this->url_alter = $url_alter;
+    if (!$this->request_alter || is_callable(array($request_alter, 'alterRequest'))) {
+      $this->request_alter = $request_alter;
     }
     else {
-      throw new Exception(t('The url_alter parameter must either be a object with a public alterUrl method, or evaluate to FALSE.'));
+      throw new Exception(t('The request_alter parameter must either be a object with a public alterRequest method, or evaluate to FALSE.'));
     }
   }
 
@@ -69,10 +69,6 @@ class RestClient {
       $data = $formatter->serialize($data);
     }
 
-    if ($this->url_alter) {
-      $url = $this->url_alter->alterUrl($url);
-    }
-
     $req = new RestClientRequest(array(
       'method' => $method,
       'url' => $url,
@@ -82,6 +78,11 @@ class RestClient {
     if ($data) {
       $req->setHeader('Content-type', $content_type);
       $req->setHeader('Content-length', strlen($data));
+    }
+
+    // Allow the request to be altered
+    if ($this->request_alter) {
+      $this->request_alter->alterRequest($req);
     }
 
     // Allow the authentication implementation to do it's magic
