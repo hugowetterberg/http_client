@@ -1,0 +1,10 @@
+; $Id$
+name = REST Client OAuth
+description = Provides a OAuth authentication mechanism for the REST Client
+dependencies[] = autoload
+dependencies[] = oauth_common
+dependencies[] = rest_client
+
+package = Services - clients
+core = 6.x
+php = 5.x

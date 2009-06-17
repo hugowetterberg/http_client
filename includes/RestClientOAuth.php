@@ -1,7 +1,7 @@
 <?php
 // $Id$
 
-class RestClientOAuth {
+class RestClientOAuth implements RestClientAuthentication {
   private $consumer;
   private $token;
   private $sign;
@@ -54,7 +54,7 @@ class RestClientOAuth {
 
     // Transfer all parameters to the request objects
     foreach ($req->get_parameters() as $key => $val) {
-      $request->setParameter($key, $value);
+      $request->setParameter($key, $val);
     }
   }
 }

@@ -1,0 +1,12 @@
+<?php
+
+/**
+ * Implementation hook_autoload_info().
+ */
+function rest_client_autoload_info() {
+  return array(
+    'RestClient'                => array('file' => 'includes/RestClient.php'),
+    'RestClientAuthentication'  => array('file' => 'includes/RestClient.php'),
+    'RestClientRequest'         => array('file' => 'includes/RestClientRequest.php'),
+  );
+}

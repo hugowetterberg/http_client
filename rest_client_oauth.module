@@ -1,0 +1,11 @@
+<?php
+// $Id$
+
+/**
+ * Implementation hook_autoload_info().
+ */
+function rest_client_oauth_autoload_info() {
+  return array(
+    'RestClientOAuth'           => array('file' => 'includes/RestClientOAuth.php'),
+  );
+}

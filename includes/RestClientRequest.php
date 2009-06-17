@@ -118,6 +118,10 @@ class RestClientRequest {
   }
   
   public function toUrl() {
+    if (empty($this->parameters)) {
+      return $this->url;
+    }
+
     $total = array();
     foreach ($this->parameters as $k => $v) {
       if (is_array($v)) {
@@ -129,7 +133,6 @@ class RestClientRequest {
       }
     }
     $out = implode("&", $total);
-    return $out;
-    
+    return $this->url . '?' . $out;
   }
 }
