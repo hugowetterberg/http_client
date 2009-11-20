@@ -65,8 +65,8 @@ class RestClient {
   public function curl($url, $parameters, $method, $data=NULL, $content_type='application/vnd.php.serialized', $extra_headers=array()) {
     $ch = curl_init();
 
-    if ($formatter && $data) {
-      $data = $formatter->serialize($data);
+    if ($this->formatter && $data) {
+      $data = $this->formatter->serialize($data);
     }
 
     $req = new RestClientRequest(array(
@@ -109,8 +109,8 @@ class RestClient {
     curl_close($ch);
 
     if ($res->responseCode==200) {
-      if ($formatter) {
-        return $formatter->unserialize($res->body);
+      if ($this->formatter) {
+        return $this->formatter->unserialize($res->body);
       }
       return $res->body;
     }
