@@ -34,6 +34,28 @@ class RestClient {
     }
   }
 
+  /**
+   * Inject authentication class
+   * @param RestClientAuthentication $auth
+   *   The class to use for authentication. Must implement RestClientAuthentication
+   *
+   * @return void
+   */
+  public function setAuthentication(RestClientAuthentication $auth) {
+    $this->authentication = $auth;
+  }
+
+  /**
+   * Inject formatter class
+   * @param RestClientFormatter $formatter
+   *   The class to use for formatting. Must implement RestClientFormatter
+   *
+   * @return void
+   */
+  public function setFormatter(RestClientFormatter $formatter) {
+    $this->formatter = $formatter;
+  }
+
   private function get($url, $parameters) {
     $ch = $this->curl($url, $parameters, 'GET');
     return $this->execute($ch);
