@@ -9,3 +9,10 @@ function rest_client_oauth_autoload_info() {
     'RestClientOAuth'           => array('file' => 'includes/RestClientOAuth.php'),
   );
 }
+
+/**
+ * Implementation of hook_enable().
+ */
+function rest_client_oauth_enable() {
+  autoload_flush_caches();
+}

@@ -10,3 +10,10 @@ function rest_client_autoload_info() {
     'RestClientRequest'         => array('file' => 'includes/RestClientRequest.php'),
   );
 }
+
+/**
+ * Implementation of hook_enable().
+ */
+function rest_client_enable() {
+  autoload_flush_caches();
+}
