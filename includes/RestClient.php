@@ -56,7 +56,7 @@ class RestClient {
     $this->formatter = $formatter;
   }
 
-  private function get($url, $parameters) {
+  public function get($url, $parameters) {
     $ch = $this->curl($url, $parameters, 'GET');
     return $this->execute($ch);
   }
