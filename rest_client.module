@@ -8,6 +8,8 @@ function rest_client_autoload_info() {
     'RestClient'                => array('file' => 'includes/RestClient.php'),
     'RestClientAuthentication'  => array('file' => 'includes/RestClient.php'),
     'RestClientRequest'         => array('file' => 'includes/RestClientRequest.php'),
+    'RestClientBaseFormatter'   => array('file' => 'includes/RestClient.php'),
+    'RestClientXMLFormatter'    => array('file' => 'includes/RestClientXMLFormatter.php'),
   );
 }
 
