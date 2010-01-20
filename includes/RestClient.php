@@ -4,6 +4,7 @@ class RestClient {
   private $authentication = NULL;
   private $request_alter = NULL;
   private $formatter = NULL;
+  private $lastError = FALSE;
   public $rawResponse;
   public $lastResponse;
 
@@ -128,6 +129,7 @@ class RestClient {
     $this->rawResponse = curl_exec($ch);
     $res = $this->interpretResponse($this->rawResponse);
     $this->lastResponse = $res;
+    $this->lastError = curl_error($ch);
     curl_close($ch);
 
     if ($res->responseCode==200) {
@@ -162,6 +164,35 @@ class RestClient {
 
     return $obj;
   }
+
+  /**
+   * Stolen from OAuth_common
+   */
+  public static function urlencode_rfc3986($input) {
+    if (is_array($input)) {
+      return array_map(array('RestClient', 'urlencode_rfc3986'), $input);
+    } else if (is_scalar($input)) {
+      return str_replace(
+        '+',
+        ' ',
+        str_replace('%7E', '~', rawurlencode($input))
+      );
+    } else {
+      return '';
+    }
+  }
+
+  /**
+   * Check for curl error
+   * Returns FALSE if no error occured
+   */
+  public function getCurlError() {
+    if (empty($this->lastError)) {
+      $this->lastError = FALSE;
+    }
+    return $this->lastError;
+  }
+
 }
 
 class RestClientBaseFormatter implements RestClientFormatter {

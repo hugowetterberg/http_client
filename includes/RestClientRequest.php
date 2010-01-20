@@ -126,10 +126,10 @@ class RestClientRequest {
     foreach ($this->parameters as $k => $v) {
       if (is_array($v)) {
         foreach ($v as $va) {
-          $total[] = OAuthUtil::urlencode_rfc3986($k) . "[]=" . OAuthUtil::urlencode_rfc3986($va);
+          $total[] = RestClient::urlencode_rfc3986($k) . "[]=" . RestClient::urlencode_rfc3986($va);
         }
       } else {
-        $total[] = OAuthUtil::urlencode_rfc3986($k) . "=" . OAuthUtil::urlencode_rfc3986($v);
+        $total[] = RestClient::urlencode_rfc3986($k) . "=" . RestClient::urlencode_rfc3986($v);
       }
     }
     $out = implode("&", $total);
