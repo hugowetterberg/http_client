@@ -121,7 +121,6 @@ class RestClient {
       curl_setopt($ch, CURLOPT_POSTFIELDS, $req->getData());
     }
     curl_setopt($ch, CURLOPT_HTTPHEADER, array_merge($req->getHeaders(), $extra_headers));
-
     return $ch;
   }
 
@@ -139,6 +138,10 @@ class RestClient {
       return $res->body;
     }
     else {
+      // Add better error reporting
+      if (empty($res->rawResponse)) {
+        throw new Exception('Curl Error: ' . $this->lastError);
+      }
       throw new Exception($res->responseMessage, $res->responseCode);
     }
   }
