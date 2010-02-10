@@ -47,11 +47,14 @@ class RestClientXMLFormatter implements RestClientFormatter {
     }
   }
 
+  public function mimeType() {
+    return 'application/xml';
+  }
 
   /**
    * Directly stolen from rest_server by Hugo Wetterberg
    */
-  private function xml_recurse(&$doc, &$parent, $data) {
+  protected function xml_recurse(&$doc, &$parent, $data) {
     if (is_object($data)) {
       $data = get_object_vars($data);
     }
