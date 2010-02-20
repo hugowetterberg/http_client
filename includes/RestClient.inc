@@ -9,24 +9,31 @@ class RestClient {
   protected $request_alter = NULL;
   protected $formatter = NULL;
   protected $lastError = FALSE;
+  protected $delegate = NULL;
 
   public $rawResponse;
   public $lastResponse;
 
   /**
-   * Allows specification of additional custom curl options.
+   * Allows specification of additional custom options.
    */
-  public $curlOpts = array();
-
+  public $options = array();
 
   /**
-   * Creates a Rest client
+   * Creates a Rest client.
    *
-   * @param string $authentication
-   * @param string $request_alter
-   * @author Hugo Wetterberg
+   * @param RestClientAuthentication $authentication
+   *  Optional. Authentication to use for the request.
+   * @param RestClientFormatter $formatter
+   *  Optional. Formatter to use for request and response bodies.
+   * @param mixed $request_alter
+   *  Optional. Either a callable, a object with a public alterRequest method,
+   *  a class that has a public static alterRequestMethod or FALSE.
+   * @param RestClientDelegate $delegate
+   *  Optional. The delegate that executes the call for the RestClient.
+   *  Defaults to a RestClientCurlDelegate if curl is available.
    */
-  public function __construct($authentication = NULL, $formatter = NULL, $request_alter = NULL) {
+  public function __construct($authentication = NULL, $formatter = NULL, $request_alter = FALSE, $delegate = NULL) {
     $this->authentication = $authentication;
     $this->formatter = $formatter;
 
@@ -37,12 +44,23 @@ class RestClient {
       throw new Exception(t('The formatter parameter must either be a object implementing RestClientFormatter, or evaluate to FALSE.'));
     }
 
-    if (!$this->request_alter || is_callable(array($request_alter, 'alterRequest'))) {
+    if (is_object($request_alter) && is_callable(array($request_alter, 'alterRequest'))) {
+      $request_alter = array($request_alter, 'alterRequest');
+    }
+    if (!$request_alter || is_callable($request_alter)) {
       $this->request_alter = $request_alter;
     }
     else {
-      throw new Exception(t('The request_alter parameter must either be a object with a public alterRequest method, or evaluate to FALSE.'));
+      throw new Exception(t('The request_alter parameter must either be a object or class with a public alterRequest method, callable in itself or evaluate to FALSE.'));
     }
+
+    if (!$delegate && function_exists('curl_init')) {
+      $delegate = new RestClientCurlDelegate();
+    }
+    if (!$delegate) {
+      throw new Exception(t('The RestClient cannot execute requests without a delegate. This probably means that you don\'t have curl installed on your system.'));
+    }
+    $this->delegate = $delegate;
   }
 
   /**
@@ -108,34 +126,6 @@ class RestClient {
   }
 
   /**
-   * Gets a curl handle for the given request.
-   */
-  public function curl(RestClientRequest $request) {
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_HEADER, 1);
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $request->method);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_URL, $request->url());
-    curl_setopt($ch, CURLOPT_USERAGENT, 'Drupal (+http://drupal.org/)');
-
-    if (isset($request->data)) {
-      if ($this->formatter) {
-        $request->headers[] = 'Content-type: ' . $this->formatter->mimeType();
-        $data = $this->formatter->serialize($request->data);
-      }
-      else {
-        $data = (string)$request->data;
-      }
-      curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-      $request->headers[] = 'Content-length: '. strlen($data);
-    }
-
-    curl_setopt_array($ch, $request->curlOpts + $this->curlOpts);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $request->headers);
-    return $ch;
-  }
-
-  /**
    * Executes the given request.
    */
   public function execute(RestClientRequest $request) {
@@ -144,17 +134,25 @@ class RestClient {
       $this->request_alter->alterRequest($request);
     }
 
+    if (isset($request->data)) {
+      if ($this->formatter) {
+        $request->setHeader('Content-type', $this->formatter->mimeType());
+        $request->setHeader('Accept', $this->formatter->mimeType());
+        $request->data = $this->formatter->serialize($request->data);
+      }
+      else {
+        $request->data = (string)$request->data;
+      }
+      $request->setHeader('Content-length', strlen($request->data));
+    }
+
     // Allow the authentication implementation to do it's magic
     if ($this->authentication) {
       $this->authentication->authenticate($request);
     }
 
-    $ch = $this->curl($request);
-    $this->rawResponse = curl_exec($ch);
-    $response = $this->interpretResponse($this->rawResponse);
+    $response = $this->delegate->execute($this, $request);
     $this->lastResponse = $response;
-    $this->lastError = curl_error($ch);
-    curl_close($ch);
 
     $result = NULL;
 
@@ -171,10 +169,6 @@ class RestClient {
         $result = $response->body;
       }
     }
-    // Deal with curl errors.
-    else if (empty($this->rawResponse) && !empty($this->lastError)) {
-      throw new RestClientException('Curl Error: ' . $this->lastError);
-    }
     // Output any errors set by remote drupal sites.
     elseif (!empty($response->drupalErrors)) {
       throw new RestClientException(check_plain(implode("\n", $response->drupalErrors)), $response->responseCode, $response);
@@ -188,9 +182,50 @@ class RestClient {
   }
 
   /**
-   * Interprets the response.
+   * Stolen from OAuth_common
    */
-  protected function interpretResponse($response) {
+  public static function urlencode_rfc3986($input) {
+    if (is_array($input)) {
+      return array_map(array('RestClient', 'urlencode_rfc3986'), $input);
+    } else if (is_scalar($input)) {
+      return str_replace(
+        '+',
+        ' ',
+        str_replace('%7E', '~', rawurlencode($input))
+      );
+    } else {
+      return '';
+    }
+  }
+}
+
+/**
+ * Abstract base class for Rest client delegates.
+ */
+abstract class RestClientDelegate {
+
+  /**
+   * Executes a request for the RestClient.
+   *
+   * @param RestClient $client
+   *  The client we're acting as a delegate for.
+   * @param RestClientRequest $request
+   *  The request to execute.
+   * @return object
+   *  The interpreted response.
+   */
+  public abstract function execute(RestClient $client, RestClientRequest $request);
+
+  /**
+   * This function interprets a raw http response.
+   *
+   * @param RestClient $client
+   * @param string $response
+   * @return object
+   *  The interpreted response.
+   */
+  protected function interpretResponse(RestClient $client, $response) {
+    $client->rawResponse = $response;
     $split = preg_split('/\r\n\r\n/', $response, 2);
     if (!isset($split[1])) {
       throw new RestClientException('Error interpreting response', 0, (object)array(
@@ -223,23 +258,6 @@ class RestClient {
     }
     return $obj;
   }
-
-  /**
-   * Stolen from OAuth_common
-   */
-  public static function urlencode_rfc3986($input) {
-    if (is_array($input)) {
-      return array_map(array('RestClient', 'urlencode_rfc3986'), $input);
-    } else if (is_scalar($input)) {
-      return str_replace(
-        '+',
-        ' ',
-        str_replace('%7E', '~', rawurlencode($input))
-      );
-    } else {
-      return '';
-    }
-  }
 }
 
 /**
@@ -250,7 +268,7 @@ class RestClientException extends Exception {
   protected $response;
 
   public function __construct($message, $code = 0, $response = NULL, $exception = NULL) {
-    parent::__construct($message, $code, $exception);
+    parent::__construct($message, $code);
     $this->response = $response;
   }
 
@@ -394,9 +412,9 @@ class RestClientRequest {
   public $data = NULL;
 
   /**
-   * Allows specification of additional custom curl options.
+   * Allows specification of additional custom options.
    */
-  public $curlOpts = array();
+  public $options = array();
 
   /**
    * Construct a new client request.
@@ -413,6 +431,90 @@ class RestClientRequest {
         $this->$key = $values[$key];
       }
     }
+  }
+
+  /**
+   * Gets the values of a header, or the value of the header if
+   * $treat_as_single is set to true.
+   *
+   * @param string $name
+   * @param string $treat_as_single
+   *  Optional. If set to FALSE an array of values will be returned. Otherwise
+   *  The first value of the header will be returned.
+   * @return string|array
+   */
+  public function getHeader($name, $treat_as_single=TRUE) {
+    $value = NULL;
+
+    if (!empty($this->headers[$name])) {
+      if ($treat_as_single) {
+        $value = reset($this->headers[$name]);
+      }
+      else {
+        $value = $this->headers[$name];
+      }
+    }
+
+    return $value;
+  }
+
+  /**
+   * Returns the headers as a array. Multiple valued headers will have their
+   * values concatenated and separated by a comma as per
+   * http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
+   *
+   * @return array
+   */
+  public function getHeaders() {
+    $headers = array();
+    foreach ($this->headers as $name => $values) {
+      $headers[] = $name . ': ' . join($values, ', ');
+    }
+    return $headers;
+  }
+
+  /**
+   * Appends a header value. Use RestClientRequest::setHeader() it you want to
+   * set the value of a header.
+   *
+   * @param string $name
+   * @param string $value
+   * @return void
+   */
+  public function addHeader($name, $value) {
+    if (!is_array($value)) {
+      $this->headers[$name][] = $value;
+    }
+    else {
+      $values = isset($this->headers[$name]) ? $this->headers[$name] : array();
+      $this->headers[$name] = $values + $value;
+    }
+  }
+
+  /**
+   * Sets a header value.
+   *
+   * @param string $name
+   * @param string $value
+   * @return void
+   */
+  public function setHeader($name, $value) {
+    if (!is_array($value)) {
+      $this->headers[$name][] = $value;
+    }
+    else {
+      $this->headers[$name] = $value;
+    }
+  }
+
+  /**
+   * Removes a header.
+   *
+   * @param string $name
+   * @return void
+   */
+  public function removeHeader($name) {
+    unset($this->headers[$name]);
   }
 
   /**
