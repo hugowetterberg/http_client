@@ -7,13 +7,15 @@ class RestClientOAuth implements RestClientAuthentication {
   private $sign;
   private $signImpl;
   private $hash_body;
+  private $header_auth;
 
-  public function __construct($consumer, $token=NULL, $sign_impl=NULL, $hash_body=TRUE) {
+  public function __construct($consumer, $token=NULL, $sign_impl=NULL, $hash_body=TRUE, $header_auth=FALSE) {
     $this->consumer = $consumer;
     $this->token = $token;
     $this->signImpl = $sign_impl;
     $this->sign = is_object($sign_impl);
     $this->hash_body = $hash_body;
+    $this->header_auth = $header_auth;
   }
 
   /**
@@ -36,29 +38,37 @@ class RestClientOAuth implements RestClientAuthentication {
    * @return void
    */
   public function authenticate($request) {
+    // Create a OAuth request object.
+    $req = OAuthRequest::from_consumer_and_token($this->consumer, $this->token,
+      $request->method, $request->url, $request->parameters);
+
     if ($this->hash_body) {
-      // Add a body hash if applicable
+      // Add a body hash if applicable.
       $content_type = $request->getHeader('Content-type', TRUE);
-      if ($content_type !== 'application/x-www-form-urlencoded') {
-        $data = $request->getData();
+      if (in_array($request->method, array('POST', 'PUT')) && $content_type !== 'application/x-www-form-urlencoded') {
+        $data = $request->data;
         $data || $data = '';
-        $request->setParameter('oauth_body_hash', base64_encode(sha1($data, TRUE)));
+        $req->set_parameter('oauth_body_hash', base64_encode(sha1($data, TRUE)));
       }
     }
 
-    // Create a OAuth request object, and sign it if we got a sign
-    $req = OAuthRequest::from_consumer_and_token($this->consumer, $this->token,
-      $request->getMethod(), $request->getUrl(), $request->getParameters());
+    // Sign the request if we can and should.
     if ($this->sign && $this->signImpl) {
       $req->sign_request($this->signImpl, $this->consumer, $this->token);
     }
 
     // Make sure that we use the normalized url for the request
-    $request->setUrl($req->get_normalized_http_url());
+    $request->url = $req->get_normalized_http_url();
 
-    // Transfer all parameters to the request objects
-    foreach ($req->get_parameters() as $key => $val) {
-      $request->setParameter($key, $val);
+    if ($this->header_auth) {
+      $auth_header = split(':', $req->to_header(), 2);
+      $request->setHeader($auth_header[0], trim($auth_header[1]));
+    }
+    else {
+      // Transfer all parameters to the request objects
+      foreach ($req->get_parameters() as $key => $val) {
+        $request->parameters[$key] = $val;
+      }
     }
   }
 }

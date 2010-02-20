@@ -6,7 +6,7 @@
  */
 function rest_client_oauth_autoload_info() {
   return array(
-    'RestClientOAuth'           => array('file' => 'includes/RestClientOAuth.php'),
+    'RestClientOAuth'           => array('file' => 'includes/RestClientOAuth.inc'),
   );
 }
 
