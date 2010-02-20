@@ -7,10 +7,10 @@
  * @author Simon Ljungberg <simon.ljungberg@goodold.se>
  */
 
-class RestClientXMLFormatter implements RestClientFormatter {
+class HttpClientXMLFormatter implements HttpClientFormatter {
   /**
    * Serializes arbitrary data to the implemented format.
-   * Directly stolen from rest_server by Hugo Wetterberg
+   * Directly stolen from http_server by Hugo Wetterberg
    *
    * @param mixed $data
    *  The data that should be serialized.
@@ -52,7 +52,7 @@ class RestClientXMLFormatter implements RestClientFormatter {
   }
 
   /**
-   * Directly stolen from rest_server by Hugo Wetterberg
+   * Directly stolen from http_server by Hugo Wetterberg
    */
   protected function xml_recurse(&$doc, &$parent, $data) {
     if (is_object($data)) {

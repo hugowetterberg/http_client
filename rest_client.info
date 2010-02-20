@@ -1,8 +1,0 @@
-; $Id$
-name = REST Client
-description = Provides a REST client for use with the services REST server
-dependencies[] = autoload
-
-package = Services - clients
-core = 6.x
-php = 5.x

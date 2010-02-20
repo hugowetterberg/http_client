@@ -1,9 +1,9 @@
 <?php
 
 /**
- * A rest client.
+ * A http client.
  */
-class RestClient {
+class HttpClient {
 
   protected $authentication = NULL;
   protected $request_alter = NULL;
@@ -20,28 +20,28 @@ class RestClient {
   public $options = array();
 
   /**
-   * Creates a Rest client.
+   * Creates a Http client.
    *
-   * @param RestClientAuthentication $authentication
+   * @param HttpClientAuthentication $authentication
    *  Optional. Authentication to use for the request.
-   * @param RestClientFormatter $formatter
+   * @param HttpClientFormatter $formatter
    *  Optional. Formatter to use for request and response bodies.
    * @param mixed $request_alter
    *  Optional. Either a callable, a object with a public alterRequest method,
    *  a class that has a public static alterRequestMethod or FALSE.
-   * @param RestClientDelegate $delegate
-   *  Optional. The delegate that executes the call for the RestClient.
-   *  Defaults to a RestClientCurlDelegate if curl is available.
+   * @param HttpClientDelegate $delegate
+   *  Optional. The delegate that executes the call for the HttpClient.
+   *  Defaults to a HttpClientCurlDelegate if curl is available.
    */
   public function __construct($authentication = NULL, $formatter = NULL, $request_alter = FALSE, $delegate = NULL) {
     $this->authentication = $authentication;
     $this->formatter = $formatter;
 
-    if (!$formatter || in_array('RestClientFormatter', class_implements($formatter))) {
+    if (!$formatter || in_array('HttpClientFormatter', class_implements($formatter))) {
       $this->formatter = $formatter;
     }
     else {
-      throw new Exception(t('The formatter parameter must either be a object implementing RestClientFormatter, or evaluate to FALSE.'));
+      throw new Exception(t('The formatter parameter must either be a object implementing HttpClientFormatter, or evaluate to FALSE.'));
     }
 
     if (is_object($request_alter) && is_callable(array($request_alter, 'alterRequest'))) {
@@ -55,10 +55,10 @@ class RestClient {
     }
 
     if (!$delegate && function_exists('curl_init')) {
-      $delegate = new RestClientCurlDelegate();
+      $delegate = new HttpClientCurlDelegate();
     }
     if (!$delegate) {
-      throw new Exception(t('The RestClient cannot execute requests without a delegate. This probably means that you don\'t have curl installed on your system.'));
+      throw new Exception(t('The HttpClient cannot execute requests without a delegate. This probably means that you don\'t have curl installed on your system.'));
     }
     $this->delegate = $delegate;
   }
@@ -66,20 +66,20 @@ class RestClient {
   /**
    * Inject authentication class
    *
-   * @param RestClientAuthentication $auth
+   * @param HttpClientAuthentication $auth
    *   The class to use for authentication.
    */
-  public function setAuthentication(RestClientAuthentication $auth) {
+  public function setAuthentication(HttpClientAuthentication $auth) {
     $this->authentication = $auth;
   }
 
   /**
    * Inject formatter class
    *
-   * @param RestClientFormatter $formatter
+   * @param HttpClientFormatter $formatter
    *   The class to use for formatting.
    */
-  public function setFormatter(RestClientFormatter $formatter) {
+  public function setFormatter(HttpClientFormatter $formatter) {
     $this->formatter = $formatter;
   }
 
@@ -87,7 +87,7 @@ class RestClient {
    * Executes a GET request.
    */
   public function get($url, $parameters = array()) {
-    return $this->execute(new RestClientRequest($url, array(
+    return $this->execute(new HttpClientRequest($url, array(
       'method' =>  'GET',
       'parameters' => $parameters,
     )));
@@ -97,7 +97,7 @@ class RestClient {
    * Executes a POST request.
    */
   public function post($url, $data = NULL, $parameters = array()) {
-    return $this->execute(new RestClientRequest($url, array(
+    return $this->execute(new HttpClientRequest($url, array(
       'method' =>  'POST',
       'parameters' => $parameters,
       'data' => $data
@@ -108,7 +108,7 @@ class RestClient {
    * Executes a PUT request.
    */
   public function put($url, $data = NULL, $parameters = array()) {
-    return $this->execute(new RestClientRequest($url, array(
+    return $this->execute(new HttpClientRequest($url, array(
       'method' =>  'PUT',
       'parameters' => $parameters,
       'data' => $data
@@ -119,7 +119,7 @@ class RestClient {
    * Executes a DELETE request.
    */
   public function delete($url, $parameters = array()) {
-    return $this->execute(new RestClientRequest($url, array(
+    return $this->execute(new HttpClientRequest($url, array(
       'method' =>  'DELETE',
       'parameters' => $parameters,
     )));
@@ -128,7 +128,7 @@ class RestClient {
   /**
    * Executes the given request.
    */
-  public function execute(RestClientRequest $request) {
+  public function execute(HttpClientRequest $request) {
     // Allow the request to be altered
     if ($this->request_alter) {
       $this->request_alter->alterRequest($request);
@@ -162,7 +162,7 @@ class RestClient {
           $result = $this->formatter->unserialize($response->body);
         }
         catch (Exception $e) {
-          throw new RestClientException('Failed to unserialize response', 0, $response, $e);
+          throw new HttpClientException('Failed to unserialize response', 0, $response, $e);
         }
       }
       else {
@@ -171,11 +171,11 @@ class RestClient {
     }
     // Output any errors set by remote drupal sites.
     elseif (!empty($response->drupalErrors)) {
-      throw new RestClientException(check_plain(implode("\n", $response->drupalErrors)), $response->responseCode, $response);
+      throw new HttpClientException(check_plain(implode("\n", $response->drupalErrors)), $response->responseCode, $response);
     }
     // Treat all remaining non-200 responses as errors
     else {
-      throw new RestClientException(check_plain($response->responseMessage), $response->responseCode, $response);
+      throw new HttpClientException(check_plain($response->responseMessage), $response->responseCode, $response);
     }
 
     return $result;
@@ -186,7 +186,7 @@ class RestClient {
    */
   public static function urlencode_rfc3986($input) {
     if (is_array($input)) {
-      return array_map(array('RestClient', 'urlencode_rfc3986'), $input);
+      return array_map(array('HttpClient', 'urlencode_rfc3986'), $input);
     } else if (is_scalar($input)) {
       return str_replace(
         '+',
@@ -200,35 +200,35 @@ class RestClient {
 }
 
 /**
- * Abstract base class for Rest client delegates.
+ * Abstract base class for Http client delegates.
  */
-abstract class RestClientDelegate {
+abstract class HttpClientDelegate {
 
   /**
-   * Executes a request for the RestClient.
+   * Executes a request for the HttpClient.
    *
-   * @param RestClient $client
+   * @param HttpClient $client
    *  The client we're acting as a delegate for.
-   * @param RestClientRequest $request
+   * @param HttpClientRequest $request
    *  The request to execute.
    * @return object
    *  The interpreted response.
    */
-  public abstract function execute(RestClient $client, RestClientRequest $request);
+  public abstract function execute(HttpClient $client, HttpClientRequest $request);
 
   /**
    * This function interprets a raw http response.
    *
-   * @param RestClient $client
+   * @param HttpClient $client
    * @param string $response
    * @return object
    *  The interpreted response.
    */
-  protected function interpretResponse(RestClient $client, $response) {
+  protected function interpretResponse(HttpClient $client, $response) {
     $client->rawResponse = $response;
     $split = preg_split('/\r\n\r\n/', $response, 2);
     if (!isset($split[1])) {
-      throw new RestClientException('Error interpreting response', 0, (object)array(
+      throw new HttpClientException('Error interpreting response', 0, (object)array(
         'rawResponse' => $response,
       ));
     }
@@ -264,7 +264,7 @@ abstract class RestClientDelegate {
  * Exception that's used to pass information about the response when
  * a operation fails.
  */
-class RestClientException extends Exception {
+class HttpClientException extends Exception {
   protected $response;
 
   public function __construct($message, $code = 0, $response = NULL, $exception = NULL) {
@@ -283,7 +283,7 @@ class RestClientException extends Exception {
 /**
  * A base formatter to format php and json.
  */
-class RestClientBaseFormatter implements RestClientFormatter {
+class HttpClientBaseFormatter implements HttpClientFormatter {
 
   const FORMAT_PHP = 'php';
   const FORMAT_JSON = 'json';
@@ -351,9 +351,9 @@ class RestClientBaseFormatter implements RestClientFormatter {
 }
 
 /**
- * Interface implemented by formatter implementations for the rest client
+ * Interface implemented by formatter implementations for the http client
  */
-interface RestClientFormatter {
+interface HttpClientFormatter {
   /**
    * Serializes arbitrary data to the implemented format.
    *
@@ -382,13 +382,13 @@ interface RestClientFormatter {
 
 /**
  * Interface that should be implemented by classes that provides a
- * authentication method for the rest client.
+ * authentication method for the http client.
  */
-interface RestClientAuthentication {
+interface HttpClientAuthentication {
   /**
-   * Used by the RestClient to authenticate requests.
+   * Used by the HttpClient to authenticate requests.
    *
-   * @param RestClientRequest $request
+   * @param HttpClientRequest $request
    * @return void
    */
   public function authenticate($request);
@@ -398,7 +398,7 @@ interface RestClientAuthentication {
  * This is a convenience class that allows the manipulation of a http request
  * before it's handed over to curl.
  */
-class RestClientRequest {
+class HttpClientRequest {
 
   const METHOD_GET = 'GET';
   const METHOD_POST = 'POST';
@@ -474,7 +474,7 @@ class RestClientRequest {
   }
 
   /**
-   * Appends a header value. Use RestClientRequest::setHeader() it you want to
+   * Appends a header value. Use HttpClientRequest::setHeader() it you want to
    * set the value of a header.
    *
    * @param string $name
@@ -528,10 +528,10 @@ class RestClientRequest {
     foreach ($this->parameters as $k => $v) {
       if (is_array($v)) {
         foreach ($v as $va) {
-          $total[] = RestClient::urlencode_rfc3986($k) . "[]=" . RestClient::urlencode_rfc3986($va);
+          $total[] = HttpClient::urlencode_rfc3986($k) . "[]=" . HttpClient::urlencode_rfc3986($va);
         }
       } else {
-        $total[] = RestClient::urlencode_rfc3986($k) . "=" . RestClient::urlencode_rfc3986($v);
+        $total[] = HttpClient::urlencode_rfc3986($k) . "=" . HttpClient::urlencode_rfc3986($v);
       }
     }
     $out = implode("&", $total);

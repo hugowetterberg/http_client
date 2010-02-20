@@ -1,20 +1,20 @@
 <?php
 
 /**
- * A delegate for the RestClient that uses curl to fetch data.
+ * A delegate for the HttpClient that uses curl to fetch data.
  */
-class RestClientCurlDelegate extends RestClientDelegate{
+class HttpClientCurlDelegate extends HttpClientDelegate{
   /**
-   * Executes a request for the RestClient.
+   * Executes a request for the HttpClient.
    *
-   * @param RestClient $client
+   * @param HttpClient $client
    *  The client we're acting as a delegate for.
-   * @param RestClientRequest $request 
+   * @param HttpClientRequest $request 
    *  The request to execute.
    * @return object
    *  The interpreted response.
    */
-  function execute(RestClient $client, RestClientRequest $request) {
+  function execute(HttpClient $client, HttpClientRequest $request) {
     $curlopts = array();
     if (isset($client->options['curlopts'])) {
       $curlopts = $curlopts + $client->options['curlopts'];
@@ -29,7 +29,7 @@ class RestClientCurlDelegate extends RestClientDelegate{
     curl_close($ch);
 
     if ($error) {
-      throw new RestClientException('Curl Error: ' . $error);
+      throw new HttpClientException('Curl Error: ' . $error);
     }
     
     return $this->interpretResponse($client, $response);
@@ -38,7 +38,7 @@ class RestClientCurlDelegate extends RestClientDelegate{
   /**
    * Gets a curl handle for the given request.
    */
-  public function curl(RestClientRequest $request, $curlopts) {
+  public function curl(HttpClientRequest $request, $curlopts) {
     $ch = curl_init();
 
     curl_setopt($ch, CURLOPT_USERAGENT, 'Drupal (+http://drupal.org/)');

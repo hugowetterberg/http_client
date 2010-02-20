@@ -1,7 +1,7 @@
 <?php
 // $Id$
 
-class RestClientOAuth implements RestClientAuthentication {
+class HttpClientOAuth implements HttpClientAuthentication {
   private $consumer;
   private $token;
   private $sign;
@@ -32,9 +32,9 @@ class RestClientOAuth implements RestClientAuthentication {
   }
 
   /**
-   * Used by the RestClient to authenticate requests.
+   * Used by the HttpClient to authenticate requests.
    *
-   * @param RestClientRequest $request 
+   * @param HttpClientRequest $request 
    * @return void
    */
   public function authenticate($request) {
