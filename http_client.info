@@ -1,0 +1,8 @@
+; $Id$
+name = Http Client
+description = Provides a Http client for use with the services Http server
+dependencies[] = autoload
+
+package = Services - clients
+core = 6.x
+php = 5.x

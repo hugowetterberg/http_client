@@ -1,0 +1,18 @@
+<?php
+// $Id$
+
+/**
+ * Implementation hook_autoload_info().
+ */
+function http_client_oauth_autoload_info() {
+  return array(
+    'HttpClientOAuth'           => array('file' => 'includes/HttpClientOAuth.inc'),
+  );
+}
+
+/**
+ * Implementation of hook_enable().
+ */
+function http_client_oauth_enable() {
+  autoload_flush_caches();
+}
