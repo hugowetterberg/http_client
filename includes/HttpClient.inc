@@ -253,7 +253,7 @@ abstract class HttpClientDelegate {
 
       // Handle HTTP/1.1 100 Continue
       if ($obj->responseCode == 100) {
-        return $this->interpretResponse($body);
+        return $this->interpretResponse($client, $body);
       }
     }
     return $obj;
