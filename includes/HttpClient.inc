@@ -287,10 +287,12 @@ class HttpClientBaseFormatter implements HttpClientFormatter {
 
   const FORMAT_PHP = 'php';
   const FORMAT_JSON = 'json';
+  const FORMAT_FORM = 'form';
 
   protected $mimeTypes = array(
     self::FORMAT_PHP => 'application/vnd.php.serialized',
     self::FORMAT_JSON => 'application/json',
+    self::FORMAT_FORM => 'application/x-www-form-urlencoded',
   );
 
   protected $format;
@@ -315,6 +317,9 @@ class HttpClientBaseFormatter implements HttpClientFormatter {
       case self::FORMAT_JSON:
         return json_encode($data);
         break;
+      case self::FORMAT_FORM:
+        return http_build_query($data, NULL, '&');
+        break;
     }
   }
 
@@ -338,6 +343,11 @@ class HttpClientBaseFormatter implements HttpClientFormatter {
         break;
       case self::FORMAT_JSON:
         return json_decode($data);
+        break;
+      case self::FORMAT_FORM:
+        $response = array();
+        parse_str($data, $response);
+        return $response;
         break;
     }
   }
