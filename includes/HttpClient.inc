@@ -137,13 +137,15 @@ class HttpClient {
     if (isset($request->data)) {
       if ($this->formatter) {
         $request->setHeader('Content-type', $this->formatter->mimeType());
-        $request->setHeader('Accept', $this->formatter->mimeType());
         $request->data = $this->formatter->serialize($request->data);
       }
       else {
         $request->data = (string)$request->data;
       }
       $request->setHeader('Content-length', strlen($request->data));
+    }
+    if ($this->formatter) {
+      $request->setHeader('Accept', $this->formatter->mimeType());
     }
 
     // Allow the authentication implementation to do it's magic
