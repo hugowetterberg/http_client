@@ -344,7 +344,11 @@ class HttpClientBaseFormatter implements HttpClientFormatter {
         }
         break;
       case self::FORMAT_JSON:
-        return json_decode($data);
+        $response = json_decode($data);
+        if ($response === NULL) {
+          throw new Exception(t('Unserialization of response body failed.'), 1);
+        }
+        return $response;
         break;
       case self::FORMAT_FORM:
         $response = array();
