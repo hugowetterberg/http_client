@@ -8,14 +8,16 @@ class HttpClientOAuth implements HttpClientAuthentication {
   private $signImpl;
   private $hash_body;
   private $header_auth;
+  private $realm;
 
-  public function __construct($consumer, $token=NULL, $sign_impl=NULL, $hash_body=TRUE, $header_auth=FALSE) {
+  public function __construct($consumer, $token=NULL, $sign_impl=NULL, $hash_body=TRUE, $header_auth=FALSE, $realm=NULL) {
     $this->consumer = $consumer;
     $this->token = $token;
     $this->signImpl = $sign_impl;
     $this->sign = is_object($sign_impl);
     $this->hash_body = $hash_body;
     $this->header_auth = $header_auth;
+    $this->realm = $realm;
   }
 
   /**
@@ -60,15 +62,16 @@ class HttpClientOAuth implements HttpClientAuthentication {
     // Make sure that we use the normalized url for the request
     $request->url = $req->get_normalized_http_url();
 
-    if ($this->header_auth) {
-      $auth_header = split(':', $req->to_header(), 2);
-      $request->setHeader($auth_header[0], trim($auth_header[1]));
-    }
-    else {
-      // Transfer all parameters to the request objects
-      foreach ($req->get_parameters() as $key => $val) {
+    // Transfer the parameters to the request objects
+    foreach ($req->get_parameters() as $key => $val) {
+      if (!$this->header_auth || substr($key, 0, 5) != 'oauth') {
         $request->parameters[$key] = $val;
       }
+    }
+
+    if ($this->header_auth) {
+      $auth_header = split(':', $req->to_header($this->realm), 2);
+      $request->setHeader($auth_header[0], trim($auth_header[1]));
     }
   }
 }

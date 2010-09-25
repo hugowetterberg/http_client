@@ -137,13 +137,15 @@ class HttpClient {
     if (isset($request->data)) {
       if ($this->formatter) {
         $request->setHeader('Content-type', $this->formatter->mimeType());
-        $request->setHeader('Accept', $this->formatter->mimeType());
         $request->data = $this->formatter->serialize($request->data);
       }
       else {
         $request->data = (string)$request->data;
       }
       $request->setHeader('Content-length', strlen($request->data));
+    }
+    if ($this->formatter) {
+      $request->setHeader('Accept', $this->formatter->mimeType());
     }
 
     // Allow the authentication implementation to do it's magic
@@ -253,7 +255,7 @@ abstract class HttpClientDelegate {
 
       // Handle HTTP/1.1 100 Continue
       if ($obj->responseCode == 100) {
-        return $this->interpretResponse($body);
+        return $this->interpretResponse($client, $body);
       }
     }
     return $obj;
@@ -287,10 +289,12 @@ class HttpClientBaseFormatter implements HttpClientFormatter {
 
   const FORMAT_PHP = 'php';
   const FORMAT_JSON = 'json';
+  const FORMAT_FORM = 'form';
 
   protected $mimeTypes = array(
     self::FORMAT_PHP => 'application/vnd.php.serialized',
     self::FORMAT_JSON => 'application/json',
+    self::FORMAT_FORM => 'application/x-www-form-urlencoded',
   );
 
   protected $format;
@@ -315,6 +319,9 @@ class HttpClientBaseFormatter implements HttpClientFormatter {
       case self::FORMAT_JSON:
         return json_encode($data);
         break;
+      case self::FORMAT_FORM:
+        return http_build_query($data, NULL, '&');
+        break;
     }
   }
 
@@ -337,7 +344,16 @@ class HttpClientBaseFormatter implements HttpClientFormatter {
         }
         break;
       case self::FORMAT_JSON:
-        return json_decode($data);
+        $response = json_decode($data);
+        if ($response === NULL) {
+          throw new Exception(t('Unserialization of response body failed.'), 1);
+        }
+        return $response;
+        break;
+      case self::FORMAT_FORM:
+        $response = array();
+        parse_str($data, $response);
+        return $response;
         break;
     }
   }

@@ -1,0 +1,13 @@
+// $Id$
+
+Http Client 6.x-2.1, 2010-09-25
+------------------------------
+#732308 by Jeffrey04, Hugo Wetterberg: Added missing function parameters while doing interpreting response
+by SimmeLj: Extended base formatter to allow sending of data as a form
+by Hugo Wetterberg: Fixed logic error that caused the accept-header to be set only when a request with a request body was made
+by voxpelli: Now throws exception when JSON decoding fails and not just when the PHP decoding fails
+by voxpelli: Made it possible to specify a realm as well as to send parameters when using the OAuth authentication header
+
+Http Client 6.x-2.0, 2010-02-21
+------------------------------
+by Hugo Wetterberg: Initial version
