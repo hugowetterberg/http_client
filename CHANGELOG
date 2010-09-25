@@ -1,6 +1,6 @@
 // $Id$
 
-Http Client x.x-x.x, xxxx-xx-xx
+Http Client 6.x-2.1, 2010-09-25
 ------------------------------
 #732308 by Jeffrey04, Hugo Wetterberg: Added missing function parameters while doing interpreting response
 by SimmeLj: Extended base formatter to allow sending of data as a form
