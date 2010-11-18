@@ -1,7 +1,9 @@
 // $Id$
 
-Http Client 6.x-2.2, XXXX-XX-XX
+Http Client 7.x-2.2, XXXX-XX-XX
 ------------------------------
+by fago, Hugo Wetterberg, klausi, voxpelli: Port to Drupal 7
+by fago: Change to use drupal_json_encode(), breaking change
 by klausi: Coding style fixes
 
 Http Client 6.x-2.1, 2010-09-25
