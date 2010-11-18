@@ -1,5 +1,9 @@
 // $Id$
 
+Http Client 6.x-2.2, XXXX-XX-XX
+------------------------------
+by klausi: Coding style fixes
+
 Http Client 6.x-2.1, 2010-09-25
 ------------------------------
 #732308 by Jeffrey04, Hugo Wetterberg: Added missing function parameters while doing interpreting response

@@ -88,7 +88,7 @@ class HttpClient {
    */
   public function get($url, $parameters = array()) {
     return $this->execute(new HttpClientRequest($url, array(
-      'method' =>  'GET',
+      'method' => 'GET',
       'parameters' => $parameters,
     )));
   }
@@ -98,9 +98,9 @@ class HttpClient {
    */
   public function post($url, $data = NULL, $parameters = array()) {
     return $this->execute(new HttpClientRequest($url, array(
-      'method' =>  'POST',
+      'method' => 'POST',
       'parameters' => $parameters,
-      'data' => $data
+      'data' => $data,
     )));
   }
 
@@ -109,9 +109,9 @@ class HttpClient {
    */
   public function put($url, $data = NULL, $parameters = array()) {
     return $this->execute(new HttpClientRequest($url, array(
-      'method' =>  'PUT',
+      'method' => 'PUT',
       'parameters' => $parameters,
-      'data' => $data
+      'data' => $data,
     )));
   }
 
@@ -120,7 +120,7 @@ class HttpClient {
    */
   public function delete($url, $parameters = array()) {
     return $this->execute(new HttpClientRequest($url, array(
-      'method' =>  'DELETE',
+      'method' => 'DELETE',
       'parameters' => $parameters,
     )));
   }
@@ -140,7 +140,7 @@ class HttpClient {
         $request->data = $this->formatter->serialize($request->data);
       }
       else {
-        $request->data = (string)$request->data;
+        $request->data = (string) $request->data;
       }
       $request->setHeader('Content-length', strlen($request->data));
     }
@@ -189,13 +189,15 @@ class HttpClient {
   public static function urlencode_rfc3986($input) {
     if (is_array($input)) {
       return array_map(array('HttpClient', 'urlencode_rfc3986'), $input);
-    } else if (is_scalar($input)) {
+    }
+    else if (is_scalar($input)) {
       return str_replace(
         '+',
         ' ',
         str_replace('%7E', '~', rawurlencode($input))
       );
-    } else {
+    }
+    else {
       return '';
     }
   }
@@ -230,13 +232,13 @@ abstract class HttpClientDelegate {
     $client->rawResponse = $response;
     $split = preg_split('/\r\n\r\n/', $response, 2);
     if (!isset($split[1])) {
-      throw new HttpClientException('Error interpreting response', 0, (object)array(
+      throw new HttpClientException('Error interpreting response', 0, (object) array(
         'rawResponse' => $response,
       ));
     }
     list($headers, $body) = $split;
 
-    $obj = (object)array(
+    $obj = (object) array(
       'headers' => $headers,
       'body' => $body,
     );
@@ -312,7 +314,7 @@ class HttpClientBaseFormatter implements HttpClientFormatter {
    *  The serialized data as a string.
    */
   public function serialize($data) {
-    switch($this->format) {
+    switch ($this->format) {
       case self::FORMAT_PHP:
         return serialize($data);
         break;
@@ -334,9 +336,9 @@ class HttpClientBaseFormatter implements HttpClientFormatter {
    *  The unserialized data.
    */
   public function unserialize($data) {
-    switch($this->format) {
+    switch ($this->format) {
       case self::FORMAT_PHP:
-        if (($response = @unserialize($data))!==FALSE || $data === serialize(FALSE)) {
+        if (($response = @unserialize($data)) !== FALSE || $data === serialize(FALSE)) {
           return $response;
         }
         else {
@@ -459,7 +461,7 @@ class HttpClientRequest {
    *  The first value of the header will be returned.
    * @return string|array
    */
-  public function getHeader($name, $treat_as_single=TRUE) {
+  public function getHeader($name, $treat_as_single = TRUE) {
     $value = NULL;
 
     if (!empty($this->headers[$name])) {
@@ -546,7 +548,8 @@ class HttpClientRequest {
         foreach ($v as $va) {
           $total[] = HttpClient::urlencode_rfc3986($k) . "[]=" . HttpClient::urlencode_rfc3986($va);
         }
-      } else {
+      }
+      else {
         $total[] = HttpClient::urlencode_rfc3986($k) . "=" . HttpClient::urlencode_rfc3986($v);
       }
     }

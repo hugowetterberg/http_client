@@ -41,7 +41,8 @@ class HttpClientXMLFormatter implements HttpClientFormatter {
     if ($xml instanceof SimpleXMLElement) {
       // Only return data if we got well formed xml
       return $xml;
-    } else {
+    }
+    else {
       // Data was messed up
       throw new InvalidArgumentException('XML response was malformed.');
     }
@@ -79,7 +80,7 @@ class HttpClientXMLFormatter implements HttpClientFormatter {
         $parent->setAttribute('is_array', 'true');
       }
     }
-    else if ($data!==NULL) {
+    else if ($data !== NULL) {
       $parent->appendChild($doc->createTextNode($data));
     }
   }
