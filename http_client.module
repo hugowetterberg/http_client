@@ -29,7 +29,7 @@ function http_client($authentication = NULL, $formatter = NULL, $request_alter =
 }
 
 /**
- * Implementation of hook_http_client_delegates().
+ * Implements hook_http_client_delegates().
  */
 function http_client_http_client_delegates() {
   $delegates = array();

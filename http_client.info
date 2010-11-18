@@ -2,9 +2,10 @@
 name = Http Client
 description = Provides a Http client for use with the services Http server
 
+files[] = http_client.module
 files[] = includes/HttpClient.inc
 files[] = includes/HttpClientXMLFormatter.inc
+files[] = includes/HttpClientCurlDelegate.inc
 
 package = Services - clients
 core = 7.x
-php = 5.x

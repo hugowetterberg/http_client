@@ -4,10 +4,6 @@ Comes with support for authenticating with OAuth.module version 3.x for easy to 
 
 Http Client has extensible support for different request and response body formats. That lets you send PHP data structures and have them serialized and deserialized automatically. JSON and serialized PHP is supported out of the box. This makes it a good companion to REST servers and very well suited for use with the version 2+ of the REST Server.
 
-Required modules
-
-* Autoload
-
 Optional modules
 
-* OAuth 3.x
+* OAuth 3.x (Not ported to Drupal 7 yet)
