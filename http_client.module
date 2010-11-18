@@ -1,20 +1,6 @@
 <?php
 
 /**
- * Implementation hook_autoload_info().
- */
-function http_client_autoload_info() {
-  return array(
-    'HttpClient'                => array('file' => 'includes/HttpClient.inc'),
-    'HttpClientAuthentication'  => array('file' => 'includes/HttpClient.inc'),
-    'HttpClientRequest'         => array('file' => 'includes/HttpClient.inc'),
-    'HttpClientBaseFormatter'   => array('file' => 'includes/HttpClient.inc'),
-    'HttpClientCurlDelegate'     => array('file' => 'includes/HttpClientCurlDelegate.inc'),
-    'HttpClientXMLFormatter'    => array('file' => 'includes/HttpClientXMLFormatter.inc'),
-  );
-}
-
-/**
  * Factory method for the HttpClient. Use this if you don't want to select a
  * Http client delegate yourself.
  *
@@ -51,11 +37,4 @@ function http_client_http_client_delegates() {
     $delegates['curl'] = new HttpClientCurlDelegate();
   }
   return $delegates;
-}
-
-/**
- * Implementation of hook_enable().
- */
-function http_client_enable() {
-  autoload_flush_caches();
 }

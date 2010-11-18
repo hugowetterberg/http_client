@@ -319,7 +319,7 @@ class HttpClientBaseFormatter implements HttpClientFormatter {
         return serialize($data);
         break;
       case self::FORMAT_JSON:
-        return json_encode($data);
+        return drupal_json_encode($data);
         break;
       case self::FORMAT_FORM:
         return http_build_query($data, NULL, '&');
@@ -346,7 +346,7 @@ class HttpClientBaseFormatter implements HttpClientFormatter {
         }
         break;
       case self::FORMAT_JSON:
-        $response = json_decode($data);
+        $response = drupal_json_decode($data);
         if ($response === NULL) {
           throw new Exception(t('Unserialization of response body failed.'), 1);
         }
