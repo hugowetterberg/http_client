@@ -10,7 +10,7 @@ class HttpClientOAuth implements HttpClientAuthentication {
   private $header_auth;
   private $realm;
 
-  public function __construct($consumer, $token=NULL, $sign_impl=NULL, $hash_body=TRUE, $header_auth=FALSE, $realm=NULL) {
+  public function __construct($consumer, $token = NULL, $sign_impl = NULL, $hash_body = TRUE, $header_auth = FALSE, $realm = NULL) {
     $this->consumer = $consumer;
     $this->token = $token;
     $this->signImpl = $sign_impl;
@@ -36,7 +36,7 @@ class HttpClientOAuth implements HttpClientAuthentication {
   /**
    * Used by the HttpClient to authenticate requests.
    *
-   * @param HttpClientRequest $request 
+   * @param HttpClientRequest $request
    * @return void
    */
   public function authenticate($request) {

@@ -3,13 +3,13 @@
 /**
  * A delegate for the HttpClient that uses curl to fetch data.
  */
-class HttpClientCurlDelegate extends HttpClientDelegate{
+class HttpClientCurlDelegate extends HttpClientDelegate {
   /**
    * Executes a request for the HttpClient.
    *
    * @param HttpClient $client
    *  The client we're acting as a delegate for.
-   * @param HttpClientRequest $request 
+   * @param HttpClientRequest $request
    *  The request to execute.
    * @return object
    *  The interpreted response.
@@ -22,7 +22,7 @@ class HttpClientCurlDelegate extends HttpClientDelegate{
     if (isset($request->options['curlopts'])) {
       $curlopts = $request->options['curlopts'] + $curlopts;
     }
-    
+
     $ch = $this->curl($request, $curlopts);
     $response = curl_exec($ch);
     $error = curl_error($ch);
@@ -31,7 +31,7 @@ class HttpClientCurlDelegate extends HttpClientDelegate{
     if ($error) {
       throw new HttpClientException('Curl Error: ' . $error);
     }
-    
+
     return $this->interpretResponse($client, $response);
   }
 
