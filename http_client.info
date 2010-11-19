@@ -1,8 +1,11 @@
 ; $Id$
 name = Http Client
 description = Provides a Http client for use with the services Http server
-dependencies[] = autoload
+
+files[] = http_client.module
+files[] = includes/HttpClient.inc
+files[] = includes/HttpClientXMLFormatter.inc
+files[] = includes/HttpClientCurlDelegate.inc
 
 package = Services - clients
-core = 6.x
-php = 5.x
+core = 7.x
