@@ -6,10 +6,13 @@
 function http_client_autoload_info() {
   return array(
     'HttpClient'                => array('file' => 'includes/HttpClient.inc'),
+    'HttpClientDelegate'        => array('file' => 'includes/HttpClient.inc'),
+    'HttpClientException'       => array('file' => 'includes/HttpClient.inc'),
+    'HttpClientBaseFormatter'   => array('file' => 'includes/HttpClient.inc'),
+    'HttpClientFormatter'       => array('file' => 'includes/HttpClient.inc'),
     'HttpClientAuthentication'  => array('file' => 'includes/HttpClient.inc'),
     'HttpClientRequest'         => array('file' => 'includes/HttpClient.inc'),
-    'HttpClientBaseFormatter'   => array('file' => 'includes/HttpClient.inc'),
-    'HttpClientCurlDelegate'     => array('file' => 'includes/HttpClientCurlDelegate.inc'),
+    'HttpClientCurlDelegate'    => array('file' => 'includes/HttpClientCurlDelegate.inc'),
     'HttpClientXMLFormatter'    => array('file' => 'includes/HttpClientXMLFormatter.inc'),
   );
 }
