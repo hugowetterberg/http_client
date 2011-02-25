@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * Implementation hook_autoload_info().
