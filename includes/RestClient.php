@@ -140,10 +140,7 @@ class RestClient {
     }
     else {
       // Add better error reporting
-      if (empty($this->lastError)) {
-        throw new Exception('Curl Error: ' . $this->lastError . ' when accessing ' . curl_getinfo($ch, CURLINFO_EFFECTIVE_URL) . ' with headers ' . curl_getinfo($ch, CURLINFO_HEADER_OUT));
-      }
-      throw new Exception($res->responseMessage, $res->responseCode);
+      throw new Exception('Curl Error: ' . $this->lastError . ' when accessing ' . curl_getinfo($ch, CURLINFO_EFFECTIVE_URL) . ' with headers ' . curl_getinfo($ch, CURLINFO_HEADER_OUT) . "\n\nGot message: " . $res-responseMessage . ' and code: ' . $res->responseCode);
     }
   }
 
