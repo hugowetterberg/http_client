@@ -117,6 +117,7 @@ class RestClient {
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $req->getMethod());
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_URL, $req->toUrl());
+    curl_setopt($ch, CURLINFO_HEADER_OUT, TRUE);
     if ($req->hasData()) {
       curl_setopt($ch, CURLOPT_POSTFIELDS, $req->getData());
     }
@@ -139,8 +140,8 @@ class RestClient {
     }
     else {
       // Add better error reporting
-      if (empty($res->rawResponse)) {
-        throw new Exception('Curl Error: ' . $this->lastError);
+      if (empty($this->lastError)) {
+        throw new Exception('Curl Error: ' . $this->lastError . ' when accessing ' . curl_getinfo($ch, CURLINFO_EFFECTIVE_URL) . ' with headers ' . curl_getinfo($ch, CURLINFO_HEADER_OUT));
       }
       throw new Exception($res->responseMessage, $res->responseCode);
     }
