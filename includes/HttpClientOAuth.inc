@@ -69,7 +69,7 @@ class HttpClientOAuth implements HttpClientAuthentication {
     }
 
     if ($this->header_auth) {
-      $auth_header = split(':', $req->to_header($this->realm), 2);
+      $auth_header = explode(':', $req->to_header($this->realm), 2);
       $request->setHeader($auth_header[0], trim($auth_header[1]));
     }
   }
