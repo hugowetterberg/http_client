@@ -1,4 +1,3 @@
-; $Id$
 name = Http Client OAuth
 description = Provides a OAuth authentication mechanism for the Http Client
 dependencies[] = autoload
