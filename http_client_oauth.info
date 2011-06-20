@@ -1,9 +1,9 @@
 name = Http Client OAuth
 description = Provides a OAuth authentication mechanism for the Http Client
-dependencies[] = autoload
 dependencies[] = oauth_common
 dependencies[] = http_client
 
+files[] = includes/HttpClientOAuth.inc
+
 package = Services - clients
-core = 6.x
-php = 5.x
+core = 7.x
