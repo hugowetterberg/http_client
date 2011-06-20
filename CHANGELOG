@@ -2,6 +2,7 @@
 
 Http Client 7.x-2.2, XXXX-XX-XX
 ------------------------------
+by voxpelli: Updated Http Client OAuth to Drupal 7
 by fago, Hugo Wetterberg, klausi, voxpelli: Port to Drupal 7
 by fago: Change to use drupal_json_encode(), breaking change
 by klausi: Coding style fixes

@@ -6,4 +6,4 @@ Http Client has extensible support for different request and response body forma
 
 Optional modules
 
-* OAuth 3.x (Not ported to Drupal 7 yet)
+* OAuth 3.x
