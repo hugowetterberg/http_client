@@ -131,7 +131,7 @@ class HttpClient {
   public function execute(HttpClientRequest $request) {
     // Allow the request to be altered
     if ($this->request_alter) {
-      $this->request_alter->alterRequest($request);
+      call_user_func($this->request_alter, $request);
     }
 
     if (isset($request->data)) {
