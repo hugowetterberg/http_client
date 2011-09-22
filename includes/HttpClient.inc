@@ -158,7 +158,7 @@ class HttpClient {
 
     $result = NULL;
 
-    if ($response->responseCode == 200) {
+    if ($response->responseCode >= 200 && $response->responseCode <= 299) {
       if ($this->formatter) {
         try {
           $result = $this->formatter->unserialize($response->body);
