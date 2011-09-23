@@ -8,6 +8,25 @@
  */
 
 class HttpClientXMLFormatter implements HttpClientFormatter {
+  private $adaptive_root;
+  private $default_root;
+
+  /**
+   * Creates a HttpClientXMLFormatter.
+   *
+   * @param string $default_root
+   *  Optional. Defaults to 'result'. The default name that should be used for root elements,
+   *  if $adaptive_root is set to FALSE the default name will always be used.
+   * @param bool $adaptive_root
+   *  Optional. Defaults to FALSE. If $adaptive_root is set to TRUE and the source data has a
+   *  single root attribute the serializer will use that attribute as root. The object {"foo":"bar"}
+   *  would be serialized to <foo>bar</foo> instead of <result><foo>bar</foo></result>.
+   */
+  public function __construct($default_root = 'result', $adaptive_root = FALSE) {
+    $this->default_root = $default_root;
+    $this->adaptive_root = $adaptive_root;
+  }
+
   /**
    * Serializes arbitrary data to the implemented format.
    * Directly stolen from http_server by Hugo Wetterberg
@@ -19,12 +38,37 @@ class HttpClientXMLFormatter implements HttpClientFormatter {
    */
   public function serialize($data) {
     $doc = new DOMDocument('1.0', 'utf-8');
-    $root = $doc->createElement('result');
+    $root_tag = $this->default_root;
+
+    // Normalize any objects into an array.
+    if (is_object($data)) {
+      $data = get_object_vars($data);
+    }
+    // Check if we should adapt the name of the root element.
+    if ($this->adaptive_root && is_array($data) && (count($data) == 1) && !is_numeric(key($data))) {
+      $root_tag = $this->sanitizeNodeName(key($data));
+      $data = current($data);
+    }
+
+    $root = $doc->createElement($root_tag);
     $doc->appendChild($root);
 
     $this->xml_recurse($doc, $root, $data);
 
     return $doc->saveXML();
+  }
+
+  /**
+   * Sanitizes a string so that it's suitable for use as a element
+   * or attribute name.
+   *
+   * @param string $name
+   * @return string
+   *  The sanitized name.
+   */
+  private function sanitizeNodeName($name) {
+    $name = preg_replace('/[^A-Za-z0-9_]/', '_', $name);
+    return preg_replace('/^([0-9]+)/', '_$1', $name);
   }
 
   /**
@@ -68,8 +112,7 @@ class HttpClientXMLFormatter implements HttpClientFormatter {
         }
         else {
           $assoc = TRUE;
-          $key = preg_replace('/[^A-Za-z0-9_]/', '_', $key);
-          $key = preg_replace('/^([0-9]+)/', '_$1', $key);
+          $key = $this->sanitizeNodeName($key);
         }
         $element = $doc->createElement($key);
         $parent->appendChild($element);
