@@ -68,7 +68,7 @@ class HttpClientXMLFormatter implements HttpClientFormatter {
         }
         else {
           $assoc = TRUE;
-          $key = preg_replace('/[^a-z0-9_]/', '_', $key);
+          $key = preg_replace('/[^A-Za-z0-9_]/', '_', $key);
           $key = preg_replace('/^([0-9]+)/', '_$1', $key);
         }
         $element = $doc->createElement($key);
