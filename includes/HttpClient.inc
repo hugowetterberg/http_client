@@ -172,8 +172,9 @@ class HttpClient {
       }
       $request->setHeader('Content-length', strlen($request->data));
     }
-    if ($this->formatter) {
-      $request->setHeader('Accept', $this->formatter->mimeType());
+    $parser = $this->parser ? $this->parser : $this->formatter;
+    if ($parser) {
+      $request->setHeader('Accept', $parser->mimeType());
     }
 
     // Allow the authentication implementation to do it's magic
