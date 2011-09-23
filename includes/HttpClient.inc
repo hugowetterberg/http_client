@@ -4,10 +4,10 @@
  * A http client.
  */
 class HttpClient {
-
   protected $authentication = NULL;
   protected $request_alter = NULL;
   protected $formatter = NULL;
+  protected $parser = NULL;
   protected $lastError = FALSE;
   protected $delegate = NULL;
 
@@ -20,28 +20,46 @@ class HttpClient {
   public $options = array();
 
   /**
-   * Creates a Http client.
+   * Creates a Http client. All options may be passed as an array with the
+   * parameter name as the key.
    *
    * @param HttpClientAuthentication $authentication
    *  Optional. Authentication to use for the request.
    * @param HttpClientFormatter $formatter
-   *  Optional. Formatter to use for request and response bodies.
+   *  Optional. Formatter to use for serializing request data and response bodies
+   *  unless a $parser has been specified.
    * @param mixed $request_alter
    *  Optional. Either a callable, a object with a public alterRequest method,
    *  a class that has a public static alterRequestMethod or FALSE.
    * @param HttpClientDelegate $delegate
    *  Optional. The delegate that executes the call for the HttpClient.
    *  Defaults to a HttpClientCurlDelegate if curl is available.
+   * @param HttpClientFormatter $parser
+   *  Optional. Parser to use for response bodies, will default to the $formatter
+   *  used to send requests.
    */
-  public function __construct($authentication = NULL, $formatter = NULL, $request_alter = FALSE, $delegate = NULL) {
-    $this->authentication = $authentication;
-    $this->formatter = $formatter;
+  public function __construct($authentication = NULL, $formatter = NULL, $request_alter = FALSE, $delegate = NULL, $parser = NULL) {
+    // Unpack the options array.
+    if (is_array($authentication)) {
+      extract($authentication, EXTR_IF_EXISTS);
+    }
 
+    $this->authentication = $authentication;
+
+    // Validate the formatter parameter.
     if (!$formatter || in_array('HttpClientFormatter', class_implements($formatter))) {
       $this->formatter = $formatter;
     }
     else {
       throw new Exception(t('The formatter parameter must either be a object implementing HttpClientFormatter, or evaluate to FALSE.'));
+    }
+
+    // Validate the parser parameter.
+    if (!$parser || in_array('HttpClientFormatter', class_implements($parser))) {
+      $this->parser = $parser;
+    }
+    else {
+      throw new Exception(t('The parser parameter must either be a object implementing HttpClientFormatter, or evaluate to FALSE.'));
     }
 
     if (is_object($request_alter) && is_callable(array($request_alter, 'alterRequest'))) {
@@ -81,6 +99,16 @@ class HttpClient {
    */
   public function setFormatter(HttpClientFormatter $formatter) {
     $this->formatter = $formatter;
+  }
+
+  /**
+   * Inject parser class
+   *
+   * @param HttpClientFormatter $parser
+   *   The class to use for parsing.
+   */
+  public function setParser(HttpClientFormatter $parser) {
+    $this->parser = $parser;
   }
 
   /**
@@ -159,9 +187,10 @@ class HttpClient {
     $result = NULL;
 
     if ($response->responseCode >= 200 && $response->responseCode <= 299) {
-      if ($this->formatter) {
+      $parser = $parser ? $parser : $formatter;
+      if ($parser) {
         try {
-          $result = $this->formatter->unserialize($response->body);
+          $result = $parser->unserialize($response->body);
         }
         catch (Exception $e) {
           throw new HttpClientException('Failed to unserialize response', 0, $response, $e);
